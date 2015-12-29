@@ -41,6 +41,10 @@
 				break;
 			case "female":
 				var circle2 = GENETIC.paper.circle(this.x, this.y, this.r);
+				circle2.click(function(){
+					var div =GENETIC.tool.createMenu(this);
+					$("body").append(div);
+				});
 				circle2.attr({
 					"fill" : "#fff",
 					"stroke" : "#e78083",
@@ -203,6 +207,7 @@
 			}
 		},
 		createMenu:function(svg){
+			$(".menu").remove();
 			var x =svg.attr("cx");
 			var y =svg.attr("cy");
 			var div =$("<div />").css({

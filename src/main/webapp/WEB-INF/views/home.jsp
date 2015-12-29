@@ -60,8 +60,8 @@
         male14.spouse.push(male15);
         male14.children.push(male16);
         male4.parents.push(male8);
-        //GENETIC.tool.drawMale(male);
-        //GENETIC.tool.drawParent(male4);
+        GENETIC.tool.drawMale(male);
+        GENETIC.tool.drawParent(male4);
         male7.draw();
 	});
 </script>
