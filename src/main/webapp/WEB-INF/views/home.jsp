@@ -24,7 +24,7 @@
         var male4=new GENETIC.female(280, 170,"妈妈","徐飞云");
         var male5=new GENETIC.female(0, 0,"姑姑","张雪");
         var male6=new GENETIC.male(0, 0,"叔叔","张山");
-        var male7=new GENETIC.male(700, 350,"我","张明");
+        var male7=new GENETIC.female(600, 300,"我","张明");
         var male8=new GENETIC.male(250, 80,"外公","徐莽");
         var male9=new GENETIC.female(250, 50,"外婆","李琼");
         var male10=new GENETIC.male(250, 80,"舅舅","徐飞虎");
@@ -55,13 +55,13 @@
         male8.children.push(male11);
         male8.children.push(male12);
         
-        male7.spouse.push(male13);
-        male7.children.push(male14);
+        //male7.spouse.push(male13);
+       // male7.children.push(male14);
         male14.spouse.push(male15);
         male14.children.push(male16);
         male4.parents.push(male8);
-        GENETIC.tool.drawMale(male);
-        GENETIC.tool.drawParent(male4);
+        //GENETIC.tool.drawMale(male);
+        //GENETIC.tool.drawParent(male4);
         male7.draw();
 	});
 </script>
