@@ -201,7 +201,7 @@
 					if(sp.gender == 'male'){
 						sp.x = this.x + (this.r + sp.r) * 4;
 						/** (1+((male.children.length>1?(male.children.length-1)*0:0))) */
-						sp.y = this.y - 30;
+						sp.y = this.y + 30;
 					}else{
 						sp.x = this.x + (this.r + sp.r) * 4;
 						/** (1+((male.children.length>1?(male.children.length-1)*0:0))) */
@@ -212,7 +212,11 @@
 				if(this.spouseLineSVG && this.spouseLineSVG[0]){
 					
 				}else{
-					GENETIC.tool.drawSpouseLine(this, sp);
+					if(sp.gender == 'male'){
+						GENETIC.tool.drawSpouseLine(sp, this);
+					}else{
+						GENETIC.tool.drawSpouseLine(this, sp);
+					}
 				}
 				// 画孩子
 				if (this.children.length > 0) {
