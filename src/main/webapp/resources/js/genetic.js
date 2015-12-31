@@ -949,6 +949,52 @@
 				default:;
 				}
 				break;
+			case "表哥/表弟":
+				switch(r2){
+				case "father":
+					r3="";
+					break;
+				case "mother":
+					r3="";
+					break;
+				case "wife":
+					r3="表嫂/表弟妹";
+					break;
+				case "husband":
+					r3="";
+					break;
+				case "son":
+					r3="外甥";
+					break;
+				case "daughter":
+					r3="外甥女";
+					break;
+				default:;
+				}
+				break;
+			case "表姐/表妹":
+				switch(r2){
+				case "father":
+					r3="";
+					break;
+				case "mother":
+					r3="";
+					break;
+				case "wife":
+					r3="表姐夫/表妹夫";
+					break;
+				case "husband":
+					r3="";
+					break;
+				case "son":
+					r3="外甥";
+					break;
+				case "daughter":
+					r3="外甥女";
+					break;
+				default:;
+				}
+				break;
 			case "外公":
 			case "外婆":
 				switch(r2){
