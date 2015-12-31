@@ -140,6 +140,7 @@
 					var son = new GENETIC.male(x, y,relation,"");
 					//添加孩子
 					this.children.push(son);
+					GENETIC.tool.sortChildren(this);
 					//配偶添加孩子
 					if(this.spouse && this.spouse.length>0){
 						this.spouse[0].children.push(son);
@@ -156,6 +157,7 @@
 					var daughter = new GENETIC.female(x, y,relation,"");
 					//添加孩子
 					this.children.push(daughter);
+					GENETIC.tool.sortChildren(this);
 					//配偶添加孩子
 					if(this.spouse && this.spouse.length>0){
 						this.spouse[0].children.push(daughter);
@@ -189,7 +191,7 @@
 				child.clearChildren(true);
 			}
 		}
-		this.redrawChildren = function(){
+		this.redrawChildren = function(fFlag){
 			//重新绘制孩子
 			if(this.spouse[0]){
 			} else if(this.children[0]){
@@ -199,12 +201,24 @@
 			if(sp){
 				if(!sp.drewed){
 					if(sp.gender == 'male'){
-						sp.x = this.x + (this.r + sp.r) * 4;
-						/** (1+((male.children.length>1?(male.children.length-1)*0:0))) */
+						if(sp.relation == '父亲' || sp.relation =="我"){
+							if(sp.parents[0] && sp.parents[0].children.length==1 && this.parents[0] && this.parents[0].children.length==1 )
+								sp.x = this.x - (this.r + sp.r) * 6;
+							else
+								sp.x = this.x - (this.r + sp.r) * 4;
+							}
+						else
+							sp.x = this.x + (this.r + sp.r) * 4;
 						sp.y = this.y + 30;
 					}else{
-						sp.x = this.x + (this.r + sp.r) * 4;
-						/** (1+((male.children.length>1?(male.children.length-1)*0:0))) */
+						if(sp.relation == '父亲' || sp.relation =="我"){
+							if(sp.parents[0] && sp.parents[0].children.length==1 && this.parents[0] && this.parents[0].children.length==1 )
+								sp.x = this.x - (this.r + sp.r) * 6;
+							else
+								sp.x = this.x - (this.r + sp.r) * 4;
+								}
+						else
+							sp.x = this.x + (this.r + sp.r) * 4;
 						sp.y = this.y - 30;
 					}
 					sp.draw();
@@ -266,6 +280,11 @@
 					}
 					ch.draw();
 					ch.redrawChildren();
+					
+					if(ch.relation == '父亲' || ch.relation == '母亲' || ch.relation=='我' || ch.relation=='丈夫' ||ch.relation == '妻子'){
+						if(!fFlag)
+							GENETIC.tool.drawParent(ch.spouse[0]);
+					}
 					/*if(!ch.drewed){
 						GENETIC.tool.drawMale(ch);
 					}*/
@@ -283,15 +302,29 @@
 		
 		this.addParents = function(){
 			if(this.parents.length>0) return ;
+			var frelation = GENETIC.tool.getRelation(this.relation,'father');
+			if(!frelation) return;
+			var mrelation = GENETIC.tool.getRelation(this.relation,'mother');
+			if(!mrelation) return;
+			
+			/*var fl=false;
+			if(this.spouse && this.spouse[0]){
+				if(this.spouse[0].parents.length>0){
+					fl=true;
+				}
+			}
+			
+			*/
+			
 			//添加父亲
 			var fx = this.x - this.r*4
 			var fy = this.y - this.r*8 + this.r*2*(this.gender == 'female'?1:0);
-			var frelation = GENETIC.tool.getRelation(this.relation,'father');
+			
 			var f=new GENETIC.male(fx,fy,frelation,"");
 			//添加母亲
 			var mx = this.x + this.r*4;
 			var my = this.y -this.r*8 -this.r*2+this.r*2*(this.gender == 'female'?1:0);
-			var mrelation = GENETIC.tool.getRelation(this.relation,'mother');
+			
 			var m=new GENETIC.female(mx,my,mrelation,"");
 			f.spouse.push(m);
 			m.spouse.push(f);
@@ -334,20 +367,61 @@
 	GENETIC.female.prototype = new GENETIC.person();
 	GENETIC.tool = {
 		drawSpouseLine : function(male, female) {
-			var start_x = male.x;
-			var start_y = male.y + 2 * male.r;
-			var end_x = female.x;
-			var end_y = female.y + 4 * female.r;
-			var spouseLineSVG=GENETIC.paper.path(
-					"M" + start_x + " " + start_y + "L" + start_x + " "
-							+ (end_y + male.r) + "L" + (end_x) + " "
-							+ (end_y + female.r) + "L" + (end_x) + " "
-							+ (end_y)).attr({
-				"stroke" : "black",
-				"stroke-width" : 1
-			});
-			male.spouseLineSVG=spouseLineSVG;
-			female.spouseLineSVG=spouseLineSVG;
+			var length = (male.r+female.r)*4;
+			if(male.relation == "父亲" || male.relation=="母亲"){
+				var start_x = male.x;
+				var start_y = male.y + 2 * male.r;
+				if(male.parents[0] && male.parents[0].children.length==1 && female.parents[0] && female.parents[0].children.length==1 )
+					female.x+=length/2;
+				var end_x = female.x;
+				var end_y = female.y + 4 * female.r;
+				var spouseLineSVG=GENETIC.paper.path(
+						"M" + start_x + " " + start_y + "L" + start_x + " "
+								+ (end_y + male.r) + "L" + (end_x) + " "
+								+ (end_y + female.r) + "L" + (end_x) + " "
+								+ (end_y)).attr({
+					"stroke" : "black",
+					"stroke-width" : 1
+				});
+				male.spouseLineSVG=spouseLineSVG;
+				female.spouseLineSVG=spouseLineSVG;
+				female.remove();
+				female.draw();
+			}else if(male.relation=="我" || female.relation == "我"){
+				var start_x = male.x;
+				var start_y = male.y + 2 * male.r;
+				if(male.parents[0] && male.parents[0].children.length==1 && female.parents[0] && female.parents[0].children.length==1 )
+					female.x+=length/2;
+				var end_x = female.x;
+				var end_y = female.y + 4 * female.r;
+				var spouseLineSVG=GENETIC.paper.path(
+						"M" + start_x + " " + start_y + "L" + start_x + " "
+								+ (end_y + male.r) + "L" + (end_x) + " "
+								+ (end_y + female.r) + "L" + (end_x) + " "
+								+ (end_y)).attr({
+					"stroke" : "black",
+					"stroke-width" : 1
+				});
+				male.spouseLineSVG=spouseLineSVG;
+				female.spouseLineSVG=spouseLineSVG;
+				female.remove();
+				female.draw();
+			}else{
+				var start_x = male.x;
+				var start_y = male.y + 2 * male.r;
+				var end_x = female.x;
+				var end_y = female.y + 4 * female.r;
+				var spouseLineSVG=GENETIC.paper.path(
+						"M" + start_x + " " + start_y + "L" + start_x + " "
+								+ (end_y + male.r) + "L" + (end_x) + " "
+								+ (end_y + female.r) + "L" + (end_x) + " "
+								+ (end_y)).attr({
+					"stroke" : "black",
+					"stroke-width" : 1
+				});
+				male.spouseLineSVG=spouseLineSVG;
+				female.spouseLineSVG=spouseLineSVG;
+			}
 		},
 		drawChildrenLine : function(male, female) {
 			var start_x = male.x + (female.x - male.x) / 2;
@@ -433,19 +507,60 @@
 			}
 		},
 		drawParent : function(female) {
-			var parents = female.parents;
-			for (var i = 0; i < parents.length; i++) {
-				var parent = parents[i];
-				if (parent.gender == "male") {
-					var length = (female.r + female.r)
-							* 8
-							* (((parent.children.length > 1 ? (parent.children.length - 1)
-									: 0)));
-					var p_x = female.x + length / 2 - female.r * 4;
-					var p_y = female.y + 30 - female.r * 8;
-					parent.x = p_x;
-					parent.y = p_y;
-					GENETIC.tool.drawMale(parent);
+			if(female)
+			if(female.gender == 'male'){
+				//是父亲，重画爷爷分支
+				var parents = female.parents;
+				for (var i = 0; i < parents.length; i++) {
+					var parent = parents[i];
+					if (parent.gender == "male") {
+						//删除爷爷分支
+						parent.remove();
+						if(parent.spouse[0]) parent.spouse[0].remove();
+						if(parent.spouseLineSVG && parent.spouseLineSVG[0]){
+							parent.spouseLineSVG.remove();
+						}
+						parent.clearChildren();
+						//重新计算外公坐标
+						var length = (female.r + female.r)
+								* 8
+								* (((parent.children.length > 1 ? (parent.children.length - 1)
+										: 0)));
+						var p_x = female.x - length / 2 - female.r * 4;
+						var p_y = female.y  - female.r * 8;
+						parent.x = p_x;
+						parent.y = p_y;
+						parent.draw();
+						parent.redrawChildren(true);
+						//GENETIC.tool.drawMale(parent);
+					}
+				}
+			}else{
+				//是母亲，重画外公分支
+				var parents = female.parents;
+				for (var i = 0; i < parents.length; i++) {
+					var parent = parents[i];
+					if (parent.gender == "male") {
+						//删除外公分支
+						parent.remove();
+						if(parent.spouse[0]) parent.spouse[0].remove();
+						if(parent.spouseLineSVG && parent.spouseLineSVG[0]){
+							parent.spouseLineSVG.remove();
+						}
+						parent.clearChildren();
+						//重新计算外公坐标
+						var length = (female.r + female.r)
+								* 8
+								* (((parent.children.length > 1 ? (parent.children.length - 1)
+										: 0)));
+						var p_x = female.x + length / 2 - female.r * 4;
+						var p_y = female.y + 30 - female.r * 8;
+						parent.x = p_x;
+						parent.y = p_y;
+						parent.draw();
+						parent.redrawChildren(true);
+						//GENETIC.tool.drawMale(parent);
+					}
 				}
 			}
 		},
@@ -479,7 +594,7 @@
 			});
 			var li7=GENETIC.tool.createItem("修改信息",function(){
 				$("div.menu").has(this).hide();
-				alert("信息");
+				//alert("信息");
 			});
 
 			$(div).append(li7);
@@ -487,11 +602,141 @@
 			$(div).append(li5);
 			$(div).append(li3);
 			$(div).append(li4);
-			$(div).append(li6);
+			//$(div).append(li6);
 			return div;
 		},
 		createItem : function(text,fn){
 			return $("<li />").addClass("menuItem").text(text).click(fn);
+		},
+		sortChildren : function(parent){
+			if(parent.children.length<=1) return ;
+			if(parent.relation=="爷爷" || parent.relation == "奶奶"){
+				//父亲置于最右边,最后一个
+				var father = "";
+				var flag=false;
+				for(var n =0;n<parent.children.length;n++){
+					var child = parent.children[n];
+					if(child.relation=="父亲"){
+						father=child;
+						parent.children[n]=null;
+						flag=true;
+					}
+					if(flag){
+						if(n==parent.children.length-1){
+							parent.children[n]=father;
+						}else{
+							parent.children[n]=parent.children[n+1]
+						}
+					}
+				}
+				
+				
+				
+			}
+			if(parent.relation=="外公" || parent.relation == "外婆"){
+				//母亲置于其父母孩子最左边
+				var mother = "";
+				for(var n =0;n<parent.children.length;n++){
+					var child = parent.children[n];
+					if(child.relation=="母亲"){
+						mother=child;
+						parent.children[n]=null;
+						break;
+					}
+				}
+				if(parent.children.length%2==0){
+					//偶数，母亲放在第一
+					var flag = false;
+					for(var n = parent.children.length-1;n>0;n--){
+						var child = parent.children[n];
+						if(child){}else{
+							flag=true;
+						}
+						if(flag){
+							parent.children[n]=parent.children[n-1];
+						}
+					}
+					parent.children[0]=mother;
+				}else{
+					//奇数，母亲放在倒二
+					for(var n =0;n<parent.children.length-1;n++){
+						var child = parent.children[n];
+						if(!child){
+							parent.children[n]=parent.children[n+1];
+							parent.children[n+1]=null;
+						}
+					}
+					parent.children[parent.children.length-1]=parent.children[parent.children.length-2];
+					parent.children[parent.children.length-2]=mother;
+					
+				}
+				
+			}
+			
+			if(parent.relation=="父亲" || parent.relation == "母亲"){
+				//父亲置于最右边,最后一个
+				var father = "";
+				var flag=false;
+				for(var n =0;n<parent.children.length;n++){
+					var child = parent.children[n];
+					if(child.relation=="我"){
+						father=child;
+						parent.children[n]=null;
+						flag=true;
+					}
+					if(flag){
+						if(n==parent.children.length-1){
+							parent.children[n]=father;
+						}else{
+							parent.children[n]=parent.children[n+1]
+						}
+					}
+				}
+				
+				
+				
+			}
+			
+			if(parent.relation=="岳父" || parent.relation == "岳母" ||parent.relation=="公公" || parent.relation == "婆婆" ){
+				//母亲置于其父母孩子最左边
+				var mother = "";
+				for(var n =0;n<parent.children.length;n++){
+					var child = parent.children[n];
+					if(child.relation=="丈夫" || child.relation=="妻子"){
+						mother=child;
+						parent.children[n]=null;
+						break;
+					}
+				}
+				if(parent.children.length%2==0){
+					//偶数，母亲放在第一
+					var flag = false;
+					for(var n = parent.children.length-1;n>0;n--){
+						var child = parent.children[n];
+						if(child){}else{
+							flag=true;
+						}
+						if(flag){
+							parent.children[n]=parent.children[n-1];
+						}
+					}
+					parent.children[0]=mother;
+				}else{
+					//奇数，母亲放在倒二
+					for(var n =0;n<parent.children.length-1;n++){
+						var child = parent.children[n];
+						if(!child){
+							parent.children[n]=parent.children[n+1];
+							parent.children[n+1]=null;
+						}
+					}
+					parent.children[parent.children.length-1]=parent.children[parent.children.length-2];
+					parent.children[parent.children.length-2]=mother;
+					
+				}
+				
+			}
+			return;
 		},
 		getRelation : function(r1,r2){
 			var r3 = "";
@@ -522,10 +767,10 @@
 			case "妻子":
 				switch(r2){
 				case "father":
-					r3="岳父";
+					r3="";
 					break;
 				case "mother":
-					r3="岳母";
+					r3="";
 					break;
 				case "wife":
 					r3="妻子";
@@ -612,6 +857,98 @@
 				default:;
 				}
 				break;
+			case "伯伯/叔叔":
+				switch(r2){
+				case "father":
+					r3="爷爷";
+					break;
+				case "mother":
+					r3="奶奶";
+					break;
+				case "wife":
+					r3="伯母/婶婶";
+					break;
+				case "husband":
+					r3="伯伯/叔叔";
+					break;
+				case "son":
+					r3="堂兄/堂弟";
+					break;
+				case "daughter":
+					r3="堂姐/堂妹";
+					break;
+				default:;
+				}
+				break;
+			case "姑姑":
+				switch(r2){
+				case "father":
+					r3="爷爷";
+					break;
+				case "mother":
+					r3="奶奶";
+					break;
+				case "wife":
+					r3="姑姑";
+					break;
+				case "husband":
+					r3="姑父";
+					break;
+				case "son":
+					r3="表兄/表弟";
+					break;
+				case "daughter":
+					r3="表姐/表妹";
+					break;
+				default:;
+				}
+				break;
+			case "堂兄/堂弟":
+				switch(r2){
+				case "father":
+					r3="伯伯/叔叔";
+					break;
+				case "mother":
+					r3="伯母/婶婶";
+					break;
+				case "wife":
+					r3="堂嫂/堂弟妹";
+					break;
+				case "husband":
+					r3="";
+					break;
+				case "son":
+					r3="堂侄子";
+					break;
+				case "daughter":
+					r3="堂侄女";
+					break;
+				default:;
+				}
+				break;
+			case "堂姐/堂妹":
+				switch(r2){
+				case "father":
+					r3="伯伯/叔叔";
+					break;
+				case "mother":
+					r3="伯母/婶婶";
+					break;
+				case "wife":
+					r3="";
+					break;
+				case "husband":
+					r3="堂姐夫/堂妹夫";
+					break;
+				case "son":
+					r3="堂侄子";
+					break;
+				case "daughter":
+					r3="堂侄女";
+					break;
+				default:;
+				}
+				break;
 			case "外公":
 			case "外婆":
 				switch(r2){
@@ -633,6 +970,54 @@
 				case "daughter":
 					r3="阿姨";
 					break;
+				default:;
+				}
+				break;
+			case "舅舅":
+				switch(r2){
+				case "father":
+					r3="外公";
+					break;
+				case "mother":
+					r3="外婆";
+					break;
+				case "wife":
+					r3="舅妈";
+					break;
+				case "husband":
+					r3="舅舅";
+					break;
+				case "son":
+					r3="表哥/表弟";
+					break;
+				case "daughter":
+					r3="表姐/表妹";
+					break;
+					
+				default:;
+				}
+				break;
+			case "阿姨":
+				switch(r2){
+				case "father":
+					r3="外公";
+					break;
+				case "mother":
+					r3="外婆";
+					break;
+				case "wife":
+					r3="";
+					break;
+				case "husband":
+					r3="姨丈";
+					break;
+				case "son":
+					r3="表哥/表弟";
+					break;
+				case "daughter":
+					r3="表姐/表妹";
+					break;
+					
 				default:;
 				}
 				break;
@@ -662,10 +1047,10 @@
 			case "儿媳妇":
 				switch(r2){
 				case "father":
-					r3="亲家公";
+					r3="";
 					break;
 				case "mother":
-					r3="亲家母";
+					r3="";
 					break;
 				case "wife":
 					r3="儿媳妇";
@@ -695,6 +1080,29 @@
 					break;
 				case "husband":
 					r3="女婿";
+					break;
+				case "son":
+					r3="外孙";
+					break;
+				case "daughter":
+					r3="外孙女";
+					break;
+				default:;
+				}
+				break;
+			case "女婿":
+				switch(r2){
+				case "father":
+					r3="";
+					break;
+				case "mother":
+					r3="";
+					break;
+				case "wife":
+					r3="女儿";
+					break;
+				case "husband":
+					r3="";
 					break;
 				case "son":
 					r3="外孙";
